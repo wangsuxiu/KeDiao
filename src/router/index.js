@@ -1,22 +1,26 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 
-import login from '@/pages/login' //登录页
-import index from '@/pages/index' //首页
+import login from '@/pages/login'  //登录页
+import index from '@/pages/index'
 
-// 基础数据模块
+//实验室管理
 import Base from '@/pages/base'
-import BaseSchool from '@/pages/base/school'
+import BaseSchool from '@/pages/base/schoolInformation'
 import BaseGrade from '@/pages/base/grade'
 import BaseClazz from '@/pages/base/clazz'
 import BaseCourse from '@/pages/base/course'
 import BaseTeacher from '@/pages/base/teacher'
-// 问卷管理模块
-import Questionnaire from '@/pages/questionnaire'
-import QuestionnaireQuestion from '@/pages/questionnaire/question'
-import QuestionnaireList from '@/pages/questionnaire/list'
+import QuestionBank from '@/pages/questionnaire/questionbank'
+import List from '@/pages/questionnaire/list'
+import CourseList from '@/pages/survey/list'
+import Monitor from '@/pages/survey/monitor'
+import Test from '@/pages/survey/test'
 
-// 课调管理模块
+
+
+import Questionnaire from '@/pages/questionnaire'
+
 import Survey from '@/pages/survey'
 
 import Statistics from '@/pages/statistics'
@@ -43,42 +47,66 @@ export default new Router({
         path: 'school',
         name: 'BaseSchool',
         component: BaseSchool
-      },{
+      },
+      {
         path: 'grade',
         name: 'BaseGrade',
         component: BaseGrade
-      },{
-        path: 'clazz',
-        name: 'BaseClazz',
-        component: BaseClazz
-      },{
-        path: 'course',
-        name: 'BaseCourse',
-        component: BaseCourse
-      },{
-        path: 'teacher',
-        name: 'BaseTeacher',
-        component: BaseTeacher
-      }]
+      },
+      {
+        path:'clazz',
+        name:'BaseClazz',
+        component:BaseClazz
+      },
+      {
+        path:'course',
+        name:'BaseCourse',
+        component:BaseCourse
+      },
+      {
+        path:'teacher',
+        name:'BaseTeacher',
+        component:BaseTeacher
+      }
+
+      ]
     },{
-      // 问卷管理模块
       path: 'questionnaire',
       name: 'Questionnaire',
       component: Questionnaire,
-      children:[{
-        path:'question',
-        name:'QuestionnaireQuestion',
-        component:QuestionnaireQuestion
-      },{
-        path:'list',
-        name:'QuestionnaireList',
-        component:QuestionnaireList
-      }]
+      children:[
+        {
+          path:'question',
+          name:'questionbank',
+          component:QuestionBank
+        },
+        {
+          path:'list',
+          name:'list',
+          component:List
+        }
+      ]
     },{
-      // 课调管理模块
       path: 'survey',
       name: 'Survey',
       component: Survey,
+      children:[
+        {
+          path:'list',
+          name:'List',
+          component:CourseList
+        },
+        {
+          path:'monitor',
+          name:'Monitor',
+          component:Monitor
+        },
+        {
+          path:'test',
+          name:'Test',
+          component:Test
+        }
+      ]
     },{
       path: 'statistics',
       name: 'Statistics',

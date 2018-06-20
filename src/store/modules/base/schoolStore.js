@@ -1,29 +1,32 @@
-import axios from '@/store/axios.js'
+import axios from '../../axios'
 
-export default {
+
+export default{
 	actions:{
-		saveOrUpdateSchool:(context,school)=>{
+		findSchool(context){
 			return new Promise((resolve,reject)=>{
-				axios.post('/school/saveOrUpdate',school).then(({data})=>{
-					if(data.status == 200){
+				axios.get('/school/findById',{params:{id:1}}).then(({data})=>{
+					// console.log(res.data.data);
+					if(data.status==200){
 						resolve(data);
-					} else {reject(data)}
-				}).catch((error)=>{reject(error); });
-			});
-		},
-		findSchool:(context,id=1)=>{
-			return new Promise((resolve,reject)=>{
-				axios.get('/school/findById',{params:{id}}).then(({data})=>{
-					if(data.status == 200){
-						resolve(data);
-					} else {
+					}else{
 						reject(data);
 					}
-				}).catch((error)=>{reject(error)});
+				}).catch(error=>{reject(error)});
+			});
+		},
+		saveOrUpdateSchool(context,form){
+			return new Promise((resolve,reject)=>{
+				axios.post('/school/saveOrUpdate',form).then(({data})=>{
+					// console.log(res.data.data);
+					if(data.status==200){
+						resolve(data);
+					}else{
+						reject(data);
+					}
+				}).catch(error=>{reject(error)});
 			});
 		}
 	}
+
 }
-
-
-

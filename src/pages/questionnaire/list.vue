@@ -1,192 +1,324 @@
 <template>
-	<div class="qn">
-		<el-row class='topBtns'>
-			<el-col :span='12'>
-				<el-input style='width:220px' size='small'></el-input>
+	<div class="grade">
+		<el-row class="topBtns">
+			<el-col :span="12">
+				<el-input style="width:220px;" placeholder="请输入关键字" suffix-icon="el-icon-search"></el-input>
 			</el-col>
-			<el-col :span='12' class='content-right'>
-				<el-button @click='toAddQn' size="small">添加</el-button>
-				<el-button @click="toBatchDelete" size="small">批量删除</el-button>
+			<el-col :span="12" class="content-right">
+				<el-button @click="toaddList">添加</el-button>
+				<el-button>批量删除</el-button>
 			</el-col>
 		</el-row>
-		<!-- 顶部按钮结束 -->
-		<!-- 问卷列表 -->
 		<el-row>
-			<el-col :span='24'>
+			<el-col :span="24">
 				<el-table
-					v-loading='qnTblLoading'
-					size='mini'
+				    ref="multipleTable"
+				    :data="getList"
+				    tooltip-effect="dark"
+				    style="width: 100%;text-align:center"
+				    @selection-change="handleSelectionChange"
 					border
-			    ref="multipleTable"
-			    :data="getQnList"
-			    tooltip-effect="dark"
-			    style="width: 100%"
-			    @selection-change="handleSelectionChange">
-			    <el-table-column align='center' type="selection" width="55"></el-table-column>
-			    <el-table-column prop="name" label="名称"></el-table-column>
-			    <el-table-column prop="description" label="简介"></el-table-column>
-			    <el-table-column width='120' align='center' label="操作">
-			      <template slot-scope='scope'>
-			      	<el-button type='text' @click='toEditQn(scope.row)'>修改</el-button>
-			      	<el-button type='text' @click='toDeleteQn(scope.row)'>删除</el-button>
-			      </template>
-			    </el-table-column>
-			  </el-table>
+					size="mini"
+				    >
+				    <el-table-column
+				      type="selection"
+				      prop="id"
+				      width="55">
+				    </el-table-column>
+				    <el-table-column
+				      prop="name"
+				      label="问卷名称"
+				      width="650"
+				      >
+				     
+				    </el-table-column>
+				    <el-table-column
+				      prop="time"
+				      label="创建时间"
+				      width="150"
+				      >
+				    </el-table-column>
+				    <el-table-column
+				      label="操作"
+				      show-overflow-tooltip>
+				      <template slot-scope="scope">
+				      	<el-button type="text" @click="toViewList(scope.row)">预览</el-button>
+				      	<el-button type="text" @click="toEditList(scope.row)">修改</el-button>
+						<el-button type="text" @click="toDeleteList(scope.row)">删除</el-button>
+				      </template>
+				    </el-table-column>
+				  </el-table>
+
 			</el-col>
 		</el-row>
-		<!-- 问卷列表结束 -->
-		<!-- 添加问卷的模态框 -->
-		<el-dialog
-		  :title="qnDialog.title"
-		  :visible.sync="qnDialog.visible"
-		  fullscreen>
+			<!-- 创建试卷模态框 -->
+			<el-dialog :title="listDialog.title" :visible.sync="listDialog.visibile" @close="closeDialog" fullscreen>
+			{{listDialog.form}}
+			  <el-form :model="listDialog.form" label-width="100px" size="small" :rules="rules" ref="listDialogForm">
+			    <el-form-item label="问卷名称" prop="name" v-if="getShow" >
+			      <el-input v-model="listDialog.form.name" auto-complete="off"></el-input>
+			    </el-form-item>
+			    <el-form-item label="题目列表"  v-if="getShow">
+			      <el-button @click="selectQuestion">点击选择</el-button>
+			    </el-form-item>
+			  </el-form>
+			  <el-row v-for="item in listDialog.form.questions" class="btns" :key="item.id">
+				<el-col :span="24">
+				<el-card class="box-card">
+				  <div slot="header" class="clearfix">
+				    <span>{{item.id}}:  {{item.name}}</span> 
+				  </div>
+				  <div class="text item" v-for="data in item.options">
+				    {{data.label}}: {{data.content}}
+				  </div>
+				 
+				  	<i class="el-icon-edit-outline" @click="toEdit(item)" style="font-size:3em;position:absolute;right:1em;bottom:.2em"></i>
+				  
+				</el-card>
+			</el-col>
+			</el-row>
+			  <div slot="footer" class="dialog-footer">
+			    <el-button @click="listDialog.visibile = false">取 消</el-button>
+			    <el-button type="primary" @click="addlist">确 定</el-button>
+			  </div>
+			</el-dialog>
+		<!-- 添加问题模态框 -->
+			<el-dialog :title="questionDialog.title" :visible.sync="questionDialog.visibile">
+				<el-transfer 
+					 style="text-align: left; display: inline-block"
+				      v-model="value3"
+				   
+				      :left-default-checked="[2, 3]"
+				      :right-default-checked="[1]"
+				      :render-content="renderFunc"
+				      :titles="['Source', 'Target']"
+				      :format="{
+				        noChecked: '${total}',
+				        hasChecked: '${checked}/${total}'
+				      }"
+				      @change="handleChange"
+				      :data="data"
+				>
+					
+				</el-transfer>
+			</el-dialog>
+
 			
-
-			<el-form 
-				ref='gradeDialogForm'
-				:rules='qnDialog.rules'
-				:model='qnDialog.form' 
-				label-position='right'
-				label-width='100px'>
-				
-				<el-form-item label='问卷标题' prop='name'>
-					<el-input size="small" v-model='qnDialog.form.name'></el-input>
-				</el-form-item>	
-				<el-form-item label='问卷描述' prop='description'>
-					<el-input size="small" type="textarea" v-model='qnDialog.form.description'></el-input>
-				</el-form-item>	
-				<el-form-item label='问卷题目' >
-					<el-button size="small" @click="toSetQuestion">点击设置问卷题目</el-button>
-				</el-form-item>	
-			</el-form>
-
-			<!-- 内嵌的模态框，设置问卷题目 -->
-			<el-dialog
-	      width="600px"
-	      :title="questionDialog.title"
-	      :visible.sync="questionDialog.visible"
-	      append-to-body>
-
-	      <div class="question_list">
-	      	<div class="question_list_left">
-
-	      		<el-input size="small"></el-input>
-	      		<ul>
-	      			<el-checkbox-group v-model="questionList">
-						  <li><el-checkbox label="复选框 A"></el-checkbox></li>
-						  <li><el-checkbox label="复选框 B"></el-checkbox></li>
-						  <li><el-checkbox label="复选框 C"></el-checkbox></li>
-						  </el-checkbox-group>
-	      		</ul>
-	      	</div>
-	      	<div class="question_list_right">
-	      		<div>已选定的题目：</div>
-	      	</div>
-	      </div>
-
-	      <span slot="footer" class="dialog-footer">
-			    <el-button size="small" @click="questionDialog.visible = false">取 消</el-button>
-			    <el-button size="small" type="primary" @click="questionDialog.visible = false">确 定</el-button>
-			  </span>
-	    </el-dialog>
-			<!-- 内嵌的模态框结束，设置问卷题目 -->
-
-		  <span slot="footer" class="dialog-footer">
-		    <el-button size="small" @click="qnDialog.visible = false">取 消</el-button>
-		    <el-button size="small" type="primary" @click="qnDialog.visible = false">确 定</el-button>
-		  </span>
-		</el-dialog>
 
 	</div>
 </template>
+
+
 <script>
-	export default {
+	export default{
 		data(){
-			return {
-				qnTblLoading:false,
-				selectedQns:[],
-				questionList:[],
-				qnDialog:{
+			 
+			return{
+
+				listDialog:{
+					visibile:false,
 					title:'',
-					visible:false,
-					rules:{},
-					form:{}
+					form:{
+						id:'',
+						name:'',
+						time:'',
+						questions:[
+							{
+								id:1,
+								name:'老师在上课前是否进行了充分的准备?',
+								options:[
+									{
+										id:1,
+										label:'A',
+										content:'优秀',
+										score:5
+									},
+									{
+										id:2,
+										label:'B',
+										content:'良好',
+										score:4
+									},
+									{
+										id:3,
+										label:'C',
+										content:'一般',
+										score:3
+									},
+									{
+										id:4,
+										label:'D',
+										content:'较差',
+										score:2
+									},
+								]
+							}
+						]
+					}
+				},
+				rules:{
+					name:[
+					{required:true,message:'请输入问卷名称',trigger:'blur'}
+					],
+					
 				},
 				questionDialog:{
 					title:'',
-					visible:false
+					visibile:false,
+					form:{
+
+					}
+				},
+
+			}
+
+		},
+		computed:{
+			getList(){
+				return [{id:1,name:'杰普软件主讲老师课调问卷',time:'2015-06',questions:[
+					{
+						id:1,
+						name:'老师在上课前是否进行了充分的准备?',
+						options:[
+							{
+								id:1,
+								label:'A',
+								content:'优秀',
+								score:5
+							},
+							{
+								id:2,
+								label:'B',
+								content:'良好',
+								score:4
+							},
+							{
+								id:3,
+								label:'C',
+								content:'一般',
+								score:3
+							},
+							{
+								id:2,
+								label:'D',
+								content:'较差',
+								score:2
+							}
+						]
+					}
+				]},
+
+				{id:2,name:'杰普软件辅导老师课调问卷',time:'2017-08',questions:[
+				{
+					id:1,
+					name:'老师讲课的内容是否能够接受?',
+					options:[
+						{
+							id:1,
+							label:'A',
+							content:'优秀',
+							score:5
+						},
+						{
+							id:2,
+							label:'B',
+							content:'良好',
+							score:4
+						},
+						{
+							id:3,
+							label:'C',
+							content:'一般',
+							score:3
+						},
+						{
+							id:2,
+							label:'D',
+							content:'较差',
+							score:2
+						}
+					]
+				}
+
+				]}];
+			},
+			getShow(){
+				if(this.listDialog.title=='创建问卷'||this.listDialog.title=='修改问卷'){
+					return true;
+				}else{
+					return false;
 				}
 			}
 		},
-		computed:{
-			getQnList:()=>[]
-		},
 		methods:{
-
-			toSetQuestion(){
-				this.questionDialog.title = '设置问卷题目';
-				this.questionDialog.visible = true
-			},
-
-			//--------
-
-
-
 			handleSelectionChange(val) {
-        this.selectedQns = val;
-      },
-      // 关闭问卷模态框
-      closeQnDialog(){
-      	this.qnDialog.visible = false;
-      },
-      // 打开问卷模态框
-      openQnDialog(){
-      	this.qnDialog.visible = true;
-      },
-			// 去添加问卷信息
-			toAddQn(){
-				this.qnDialog.title = '创建问卷';
-				// 打开模态框
-				this.openQnDialog();
-			},
-			// 去修改问卷
-			toEditQn(qn){
+		        this.multipleSelection = val;
+		      },
+		    toEditList(row){
+		    	this.listDialog.title="修改问卷";
+		    	this.listDialog.form=row;
+		    	this.listDialog.visibile=true;
+		    },
+		    toaddList(){
+		    	
+		    	this.listDialog.title="创建问卷";
+		    	this.listDialog.visibile=true;
+		    	// console.log(this.gradeDialog.visibile);
+		    },
+		   
+		   addlist(){
+		   
+		   		//1.对用户输入的数据进行校验
+		   		//2.如果校验成功，获得数据，提交数据
+		   		//3.清空模态框中的额数据
+		   		//4.关闭模态框
+		   		 this.$refs['listDialogForm'].validate((valid) => {
+		          if (valid) {
+		          	let list=this.listDialog.form;
+		            console.log("成功",list);
+		          } else {
+		            console.log('error submit!!');
+		            return false;
+		          }
+		        });
+		   		
+		   		this.listDialog.visibile=false;
+		   		
+		   },
+		   closeDialog(){
 
-			},
-			// 去单个删除问卷
-			toDeleteQn(qn){
+		   	this.$refs['listDialogForm'].resetFields();
+		   	// 清空数据
+		   	this.listDialog.form={
+		   		id:'',
+		   		name:'',
+		   		time:'',
+		   		questions:[]
+		   	}
+		   	
+		   },
+		   // handlerClose(done){
+		   // 	alert("aaa");
+		   // 	done();
+		   // }
+		   selectQuestion(){
+		   	this.questionDialog.title='选择题目',
+		   	this.questionDialog.visibile=true;
+		   },
+		   toViewList(row){
+		   	this.listDialog.title=row.name;
+		   	this.listDialog.visibile=true;
+		   	this.listDialog.form.questions=row.questions;
+		   },
 
-			},
-			// 去批量删除数据
-			toBatchDelete(){
-
-			}
 
 		}
 	}
 </script>
 
-<style scoped="scoped">
-	.question_list{
-		display: flex;
-		border:1px solid #ccc;
-	}
-	.question_list > div {
-		flex:1;
-		height: 300px;
-		overflow-y: scroll;
-		padding: 1em;
-	}
-	.question_list > div.question_list_left {
-		border-right: 1px solid #ccc;
-	}
 
+<style scoped>
+	.topBtns{
+		margin-bottom: .5em;
+	}
 </style>
-
-
-
-
-
-
-
-

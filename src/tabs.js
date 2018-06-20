@@ -51,7 +51,13 @@ export default [{
 		id:32,
 		path:'monitor',
 		name:'课调监控'
-	}]
+	},
+	{
+		id:33,
+		path:'test',
+		name:'课调审核'
+	}
+	]
 },{
 	id:4,
 	name:'课调统计',

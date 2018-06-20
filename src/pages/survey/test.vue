@@ -1,17 +1,16 @@
 <template>
-	<div class="grade">
+	<div class="test">
 		<el-row class="topBtns">
 			<el-col :span="12">
-				<el-input style="width:220px;"></el-input>
+				<el-input style="width:220px;" placeholder="请输入关键字" suffix-icon="el-icon-search"></el-input>
 			</el-col>
 			<el-col :span="12" class="content-right">
 				<el-button @click="toaddGrade">添加</el-button>
-				<el-button @click="toBatchDelete">批量删除</el-button>
+				<el-button>批量删除</el-button>
 			</el-col>
 		</el-row>
 		<el-row>
 			<el-col :span="24">
-			<!-- {{selectIds}} -->
 				<el-table
 				    ref="multipleTable"
 				    :data="getGradeList"
@@ -20,15 +19,11 @@
 				    @selection-change="handleSelectionChange"
 					border
 					size="mini"
-					v-loading="gradeTblloading"
-
 				    >
 				    <el-table-column
 				      type="selection"
 				      prop="id"
-				      width="55"
-					
-				      >
+				      width="55">
 				    </el-table-column>
 				    <el-table-column
 				      prop="name"
@@ -50,7 +45,6 @@
 				      </template>
 				    </el-table-column>
 				  </el-table>
-			
 
 			</el-col>
 		</el-row>
@@ -79,7 +73,6 @@
 
 
 <script>
-	import {mapGetters,mapActions} from 'vuex'
 	export default{
 		data(){
 			return{
@@ -99,41 +92,17 @@
 					description:[
 						{required:true,message:'请输入年级简介',trigger:'blur'}
 					]
-				},
-				gradeTblloading:false,
-				selectIds:[]
+				}
 			}
 		},
 		computed:{
-			// getGradeList(){
-			// 	return [{id:1,name:'webui',description:'啦啦啦'},{id:2,name:'javaee',description:'呜呜呜'}];
-			// }
-			...mapGetters(['getGradeList'])
-		},
-		created(){
-			this.loadGradeList();
+			getGradeList(){
+				return [{id:1,name:'webui',description:'啦啦啦'},{id:2,name:'javaee',description:'呜呜呜'}];
+			}
 		},
 		methods:{
-			...mapActions(['findGradeList',
-						'saveOrUpdateGrade',
-						'deleteGrade',
-						'batchDeleteGrade'
-				]),
-		   loadGradeList(){
-				this.gradeTblloading=true;
-				this.findGradeList().then(()=>{
-					this.gradeTblloading=false;
-					
-				}).catch(()=>{
-					this.$notify.error({
-				          title: '错误',
-				          message: '数据加载异常'
-				        });
-				});
-			},
 			handleSelectionChange(val) {
-				// console.log(val);
-		        this.selectIds = val;
+		        this.multipleSelection = val;
 		      },
 		    toEditGrade(row){
 		    	this.gradeDialog.title="修改年级";
@@ -144,70 +113,10 @@
 		    	
 		    	this.gradeDialog.title="添加年级";
 		    	this.gradeDialog.visibile=true;
-		    	// console.log(this.gradeDialog.visibile);
+		    	console.log(this.gradeDialog.visibile);
 		    },
 		    toDeleteGrade(row){
-		    	this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-		          confirmButtonText: '确定',
-		          cancelButtonText: '取消',
-		          type: 'warning'
-		        }).then(() => {
-		        	this.deleteGrade(row.id).then(()=>{
-		        		this.$notify({
-		        			title:'成功',
-		        			message:'删除成功',
-		        			type:'success'
-		        		});
-		        		this.loadGradeList();
-		        	}).catch((error)=>{
-		        		this.$notify({
-		        			title:'错误',
-		        			message:error.message,
-		        			type:'error'
-		        		});
-		        	});
-		          
-		        }).catch(() => {
-		            this.$notify({
-		            	title:'错误',
-		            	message:'取消删除',
-		            	type:'error'
-		            });    
-		        });
-		    	
-		    },
-		    toBatchDelete(){
-		    	this.$confirm('此操作将永久删除文件，是否继续','提示',{
-		    		confirmButtonText:'确定',
-		    		cancelButtonText:'取消',
-		    		type:'warning'
-		    	}).then(()=>{
-		    		let ids=this.selectIds.map((item)=>{
-		    			return item.id;
-		    		});
-		    		this.batchDeleteGrade(ids.join()).then(()=>{
-		    			this.$notify({
-		    				title:'成功',
-		    				message:'删除成功',
-		    				type:'success'
-		    			});
-		    			this.loadGradeList();
-		    		}).catch((error)=>{
-		    			this.$notify({
-		    				title:'失败',
-		    				message:'删除失败',
-		    				type:'error'
-		    			});
-		    		});
-
-
-		    	}).catch(()=>{
-		    		this.$notify({
-		    			title:'错误',
-		    			message:'取消删除',
-		    			type:'error'
-		    		});
-		    	});
+		    	console.log("delete",row);
 		    },
 		   addGrade(){
 		   
@@ -218,28 +127,14 @@
 		   		 this.$refs['gradeDialogForm'].validate((valid) => {
 		          if (valid) {
 		          	let grade=this.gradeDialog.form;
-		            this.saveOrUpdateGrade(grade).then(()=>{
-		            	this.gradeDialog.visibile=false;
-		            	this.$notify({
-				          title: '成功',
-				          message: '添加成功',
-				          type: 'success'
-				        });
-				        this.loadGradeList();
-		            }).catch(()=>{
-		            	this.$notify.error({
-				          title: '错误',
-				          message: '添加失败'
-				        });
-						            });
-
+		            console.log("成功",grade);
 		          } else {
 		            console.log('error submit!!');
 		            return false;
 		          }
 		        });
 		   		
-		   		
+		   		this.gradeDialog.visibile=false;
 		   		
 		   },
 		   closeDialog(){
@@ -251,8 +146,6 @@
 		   		description:''
 		   	}
 		   },
-
-
 		   // handlerClose(done){
 		   // 	alert("aaa");
 		   // 	done();
